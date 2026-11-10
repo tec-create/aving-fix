@@ -1,11 +1,14 @@
 /* AVING FIX — Discovery Hub
  * Static, data-driven: everything renders from /data/stories.json.
- * Routes (hash): #/  #/edition/2026  #/awards  #/videos  #/all
+ * Routes (hash): #/  #/edition/2026  #/awards  #/videos  #/all  #/article/12345
+ * Article bodies load on demand from /data/body/<id>.json (fallback: lead + link to AVING USA).
  */
 (() => {
   'use strict';
 
-  const ARTICLE = id => `https://us.aving.net/news/articleView.html?idxno=${id}`;
+  const ORIGINAL = id => `https://us.aving.net/news/articleView.html?idxno=${id}`;
+  const ARTICLE = id => `#/article/${id}`;
+  const SITE_TITLE = document.title;
   const YT_THUMB = id => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   const PAGE = 24;
 
@@ -27,7 +30,7 @@
   const img = s => s.img || (s.yt ? YT_THUMB(s.yt) : '/assets/og.png');
 
   const card = (s, { lead = false } = {}) => `
-    <a class="card" href="${ARTICLE(s.id)}" target="_blank" rel="noopener">
+    <a class="card" href="${ARTICLE(s.id)}">
       <div class="thumb">
         <img src="${esc(img(s))}" alt="" loading="lazy" decoding="async">
         ${s.yt ? '<span class="play">▶ Video</span>' : ''}
@@ -39,7 +42,7 @@
     </a>`;
 
   const row = s => `
-    <a class="row card" href="${ARTICLE(s.id)}" target="_blank" rel="noopener">
+    <a class="row card" href="${ARTICLE(s.id)}">
       <div class="thumb"><img src="${esc(img(s))}" alt="" loading="lazy" decoding="async"></div>
       <div>
         <div>${kicker(s)} ${tagBadges(s)}</div>
@@ -95,7 +98,7 @@
           <h3>${esc(featured.t)}</h3>
           ${byline(featured)}
           <div class="btns" style="margin-top:20px">
-            <a class="btn btn--ghost" href="${ARTICLE(featured.id)}" target="_blank" rel="noopener">Read the story →</a>
+            <a class="btn btn--ghost" href="${ARTICLE(featured.id)}">Read the story →</a>
             <a class="btn btn--ghost" href="https://www.youtube.com/watch?v=${featured.yt}" target="_blank" rel="noopener">Watch on YouTube ↗</a>
           </div>
         </div>
@@ -184,7 +187,7 @@
     box.addEventListener('mouseleave', () => tip && (tip.hidden = true));
     box.addEventListener('click', e => {
       const i = e.target.dataset?.i;
-      if (i != null) window.open(ARTICLE(DB.items[+i].id), '_blank', 'noopener');
+      if (i != null) location.hash = ARTICLE(DB.items[+i].id);
     });
   }
 
@@ -224,6 +227,75 @@
     draw();
   }
 
+  /* ---------- article page ---------- */
+  const bodyCache = new Map();
+  const loadBody = id => {
+    if (!bodyCache.has(id)) {
+      bodyCache.set(id, fetch(`/data/body/${id}.json`).then(r => (r.ok ? r.json() : null)).catch(() => null));
+    }
+    return bodyCache.get(id);
+  };
+
+  const block = b => {
+    switch (b.t) {
+      case 'p': return `<p>${esc(b.x)}</p>`;
+      case 'h': return `<h2>${esc(b.x)}</h2>`;
+      case 'img': return `<figure><img src="${esc(b.src)}" alt="" loading="lazy" decoding="async">${b.cap ? `<figcaption>${esc(b.cap)}</figcaption>` : ''}</figure>`;
+      case 'yt': return `<div class="art__yt"><iframe src="https://www.youtube-nocookie.com/embed/${esc(b.id)}?rel=0" title="YouTube video" loading="lazy" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe></div>`;
+      case 'ul': return `<ul>${b.li.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+      case 'table': return `<div class="art__table"><table>${b.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></div>`;
+      default: return '';
+    }
+  };
+
+  async function renderArticle(id) {
+    view.onclick = null;
+    const s = DB.items.find(x => x.id === id);
+    if (!s) {
+      view.innerHTML = `<section class="page-head"><div class="wrap"><h1>Story not found</h1><p><a class="more" href="#/all">Browse all FIX stories →</a></p></div></section>`;
+      return;
+    }
+    document.title = `${s.t} · AVING FIX`;
+    const related = DB.items.filter(x => x.y === s.y && x.id !== s.id && (x.sec === s.sec || x.tags.some(t => s.tags.includes(t)))).slice(0, 4);
+
+    view.innerHTML = `
+      <article class="art">
+        <header class="wrap art__head">
+          <nav class="art__crumb" aria-label="Breadcrumb">
+            <a href="#/edition/${s.y}">FIX ${s.y}</a>${s.sec ? `<span>/</span><span>${esc(s.sec)}</span>` : ''}
+            ${s.tags.includes('awards') ? '<span>/</span><a href="#/awards">Best of FIX</a>' : ''}
+          </nav>
+          <h1>${esc(s.t)}</h1>
+          <div class="art__meta">
+            <span>${esc(s.by)} · ${esc((s.d || '').replace(/-/g, '.'))}</span>
+            ${tagBadges(s)}
+            <a class="art__orig" href="${ORIGINAL(s.id)}" target="_blank" rel="noopener">Original on AVING USA ↗</a>
+          </div>
+        </header>
+        <div class="wrap art__body" id="artBody">
+          ${s.img ? `<figure><img src="${esc(s.img)}" alt=""></figure>` : ''}
+          ${s.lead ? `<p>${esc(s.lead)}</p>` : ''}
+          <p class="meta">Loading story…</p>
+        </div>
+      </article>
+      ${related.length ? `
+      <section class="sec"><div class="wrap">
+        <div class="sec__head"><div><p class="eyebrow">More from FIX ${s.y}</p><h2>Keep reading.</h2></div><a class="more" href="#/edition/${s.y}">All FIX ${s.y} stories →</a></div>
+        <div class="grid grid--4">${related.map(x => card(x)).join('')}</div>
+      </div></section>` : ''}`;
+
+    const body = await loadBody(id);
+    if (location.hash !== ARTICLE(id)) return; // user navigated away meanwhile
+    const el = $('#artBody');
+    const credit = `<p class="art__credit">This story was first published by <a href="${ORIGINAL(s.id)}" target="_blank" rel="noopener">AVING USA</a>. © AVING NEWS.</p>`;
+    if (body?.body?.length) {
+      el.innerHTML = body.body.map(block).join('') + credit;
+    } else {
+      el.innerHTML = `${s.img ? `<figure><img src="${esc(s.img)}" alt=""></figure>` : ''}<p>${esc(s.lead)}</p>
+        <p><a class="btn btn--primary" href="${ORIGINAL(s.id)}" target="_blank" rel="noopener">Read the full story on AVING USA ↗</a></p>`;
+    }
+  }
+
   /* ---------- router ---------- */
   function route() {
     if (!DB) return;
@@ -232,7 +304,12 @@
     setNav(h);
     const { items, meta } = DB;
 
-    if (a === 'edition' && b) {
+    closeSearch();
+    if (a !== 'article') document.title = SITE_TITLE;
+
+    if (a === 'article' && b) {
+      renderArticle(+b);
+    } else if (a === 'edition' && b) {
       const y = +b;
       const e = meta.editions.find(x => x.y === y);
       renderList({
@@ -279,7 +356,7 @@
     const re = new RegExp(`(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
     meta.textContent = `${hits.length}${hits.length === 40 ? '+' : ''} results`;
     list.innerHTML = hits.map(({ s }) => `
-      <li><a href="${ARTICLE(s.id)}" target="_blank" rel="noopener">
+      <li><a href="${ARTICLE(s.id)}">
         <img src="${esc(img(s))}" alt="" loading="lazy">
         <span><b>${esc(s.t).replace(re, '<mark>$1</mark>')}</b><span class="meta">FIX ${s.y} · ${fmtDate(s.d)}</span></span>
       </a></li>`).join('');
@@ -299,6 +376,7 @@
   $('#closeSearch').addEventListener('click', closeSearch);
   $('#search').addEventListener('click', e => { if (e.target.id === 'search') closeSearch(); });
   $('#q').addEventListener('input', e => search(e.target.value));
+  $('#qList').addEventListener('click', e => { if (e.target.closest('a')) closeSearch(); });
   $('#closePlayer').addEventListener('click', closePlayer);
   $('#player').addEventListener('click', e => { if (e.target.id === 'player') closePlayer(); });
   $('#openMenu').addEventListener('click', e => {

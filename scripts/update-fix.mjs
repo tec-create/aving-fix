@@ -5,6 +5,7 @@
  * us.aving.net 에서 "FIX" 검색 결과를 수집해 data/stories.json 을 다시 만듭니다.
  * - 요청 간격: 1.5초 (서버 부하 방지)
  * - 이미 받은 기사(scripts/raw-fix.json)는 다시 요청하지 않음 → 새 기사만 상세 요청
+ * - FIX 기사 본문은 data/body/<id>.json 으로 저장 (사이트 안 기사 페이지용)
  * - 시작 전에 예상 요청 횟수를 출력하고, --yes 가 없으면 확인을 묻습니다.
  *
  * 사용법 (Node 18+ , 의존성 없음)
@@ -12,7 +13,7 @@
  *   node scripts/update-fix.mjs --yes    # 확인 없이 진행
  *   node scripts/update-fix.mjs --build  # 네트워크 없이 raw-fix.json → stories.json 만 재생성
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -20,6 +21,8 @@ import path from 'node:path';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RAW = path.join(ROOT, 'scripts', 'raw-fix.json');
 const OUT = path.join(ROOT, 'data', 'stories.json');
+const BODY_DIR = path.join(ROOT, 'data', 'body');
+const exists = f => access(f).then(() => true, () => false);
 const BASE = 'https://us.aving.net';
 const WORD = 'FIX';
 const DELAY = 1500;
@@ -80,6 +83,38 @@ function parseArticle(html) {
     ctx: m[0] ? txt.slice(Math.max(0, m[0].index - 80), m[0].index + 80) : '',
     desc: decode(meta('description')).slice(0, 240),
   };
+}
+
+/* ---------- article body → blocks (data/body/<id>.json) ---------- */
+// 사이트의 기사 페이지가 읽는 형식: { body: [ {t:'p',x}, {t:'h',x}, {t:'img',src,cap}, {t:'yt',id}, {t:'ul',li:[]}, {t:'table',rows:[[]]} ] }
+export function parseBody(html) {
+  const bodyHtml = (html.match(/id="article-view-content-div"[^>]*>([\s\S]*?)<\/article>/) || [])[1] || '';
+  const out = [];
+  const re = /<figure[\s\S]*?<\/figure>|<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>|<p[^>]*>[\s\S]*?<\/p>|<ul[^>]*>[\s\S]*?<\/ul>|<ol[^>]*>[\s\S]*?<\/ol>|<table[\s\S]*?<\/table>|<iframe[^>]+>/gi;
+  for (const [chunk] of bodyHtml.replace(/<script[\s\S]*?<\/script>/gi, '').matchAll(re)) {
+    const tag = chunk.slice(1, 3).toLowerCase();
+    if (tag === 'fi') {
+      const src = (chunk.match(/<img[^>]+(?:data-src|src)="([^"]+)"/) || [])[1];
+      if (src) out.push({ t: 'img', src: new URL(src, BASE).href, cap: decode((chunk.match(/<figcaption[^>]*>([\s\S]*?)<\/figcaption>/) || [])[1] || '') });
+    } else if (tag === 'if') {
+      const id = (chunk.match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]{11})/) || [])[1];
+      if (id) out.push({ t: 'yt', id });
+    } else if (/^h\d/.test(tag)) {
+      const x = decode(chunk); if (x) out.push({ t: 'h', x });
+    } else if (tag === 'ul' || tag === 'ol') {
+      const li = [...chunk.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)].map(m => decode(m[1])).filter(Boolean);
+      if (li.length) out.push({ t: 'ul', li });
+    } else if (tag === 'ta') {
+      const rows = [...chunk.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)].map(r => [...r[1].matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(c => decode(c[1])));
+      if (rows.length) out.push({ t: 'table', rows });
+    } else {
+      const x = decode(chunk);
+      if (!x) continue;
+      const strong = decode([...chunk.matchAll(/<(strong|b)>([\s\S]*?)<\/\1>/gi)].map(m => m[2]).join(' '));
+      out.push(strong && strong === x && x.length < 160 ? { t: 'h', x } : { t: 'p', x });
+    }
+  }
+  return out;
 }
 
 /* ---------- build stories.json ---------- */
@@ -155,9 +190,13 @@ async function main() {
     const fresh = list.filter(x => !known.get(x.id)?.det);
     console.log(`\n새로 상세 요청할 기사: ${fresh.length}건`);
     let i = 0;
+    await mkdir(BODY_DIR, { recursive: true });
     for (const x of fresh) {
       try {
-        x.det = parseArticle(await get(`${BASE}/news/articleView.html?idxno=${x.id}`));
+        const html = await get(`${BASE}/news/articleView.html?idxno=${x.id}`);
+        x.det = parseArticle(html);
+        // 본문은 일단 저장해 두고, FIX 기사가 아니면 아래에서 사이트가 읽지 않음
+        await writeFile(path.join(BODY_DIR, `${x.id}.json`), JSON.stringify({ body: parseBody(html) }));
       } catch (e) { console.warn(`\n실패 ${x.id}: ${e.message}`); }
       known.set(x.id, { ...known.get(x.id), ...x });
       process.stdout.write(`\r상세 ${++i}/${fresh.length}`);
@@ -165,6 +204,19 @@ async function main() {
     for (const x of list) if (known.has(x.id)) Object.assign(known.get(x.id), { t: x.t, lead: x.lead, img: x.img });
     raw = [...known.values()].sort((a, b) => b.id - a.id);
     await writeFile(RAW, JSON.stringify(raw, null, 1));
+
+    // 이전에 받았지만 본문 파일이 없는 FIX 기사 → 본문만 추가 요청
+    const missing = [];
+    for (const s of build(raw).items) if (!(await exists(path.join(BODY_DIR, `${s.id}.json`)))) missing.push(s.id);
+    if (missing.length) console.log(`\n본문 파일이 없는 FIX 기사 ${missing.length}건 추가 요청`);
+    let j = 0;
+    for (const id of missing) {
+      try {
+        const html = await get(`${BASE}/news/articleView.html?idxno=${id}`);
+        await writeFile(path.join(BODY_DIR, `${id}.json`), JSON.stringify({ body: parseBody(html) }));
+      } catch (e) { console.warn(`\n실패 ${id}: ${e.message}`); }
+      process.stdout.write(`\r본문 ${++j}/${missing.length}`);
+    }
     console.log(`\n총 요청 ${requests}회`);
   }
 

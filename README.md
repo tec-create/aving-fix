@@ -1,7 +1,7 @@
 # AVING FIX — avingfix.news
 
 AVING이 보도한 **FIX(Future Innovation tech eXpo, 대구 EXCO)** 영문 기사를 모아 보여주는 디스커버리 허브입니다.
-구조는 [avingces.news](https://avingces.news/)를 참고했습니다: 빌드 없는 정적 사이트 + JSON 데이터 + 클라이언트 렌더링. 기사 카드는 us.aving.net 원문으로 연결됩니다.
+구조는 [avingces.news](https://avingces.news/)를 참고했습니다: 빌드 없는 정적 사이트 + JSON 데이터 + 클라이언트 렌더링. 기사 목록에서 사이트 내 본문을 읽고, 원문 링크로 us.aving.net 보도를 확인할 수 있습니다.
 
 ## 폴더 구조
 
@@ -9,7 +9,7 @@ AVING이 보도한 **FIX(Future Innovation tech eXpo, 대구 EXCO)** 영문 기�
 aving-fix/
 ├─ index.html              # 페이지 뼈대 (헤더/검색/플레이어/푸터)
 ├─ assets/
-│  ├─ style.css            # 다크 테마 디자인
+│  ├─ style.css            # Dibo 기준 + 사용자 선택의 블랙 에디토리얼 디자인
 │  ├─ app.js               # 렌더링 + 해시 라우팅 + 검색 + 영상 플레이어
 │  ├─ favicon.svg
 │  └─ og.png               # SNS 공유 이미지 (1200x630)
@@ -25,13 +25,17 @@ aving-fix/
 
 | 주소 | 내용 |
 |---|---|
-| `/#/` | 홈: 히어로(기사 1건 = 사각형 1개), 대표 영상, 최신, Best of FIX, 에디션, 영상 |
+| `/#/` | 홈: 간결한 소개 → 대표 기사와 최신 목록 → Best of FIX → 대표 영상 → 에디션 → 추가 기사 |
 | `/#/edition/2026` | 연도별 에디션 (섹션 필터) |
 | `/#/awards` | Best of FIX · Global Media Awards |
 | `/#/videos` | 영상이 있는 기사 |
 | `/#/all` | 전체 기사 |
 
 검색: 우측 상단 돋보기 또는 키보드 `/`, `Ctrl+K`.
+
+## 디자인 기준
+
+현재 적용 기준과 이번 프로젝트의 선택은 [DESIGN.md](DESIGN.md)에 정리했습니다.
 
 ## 로컬에서 보기
 

@@ -1,105 +1,196 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AVING FIX · Future Innovation tech eXpo Discovery Hub</title>
-  <meta name="description" content="Every FIX story AVING has covered: Future Innovation tech eXpo (FIX) editions, Best of FIX Global Media Awards, exhibitors in mobility, robotics, AI and tech, plus on-site videos.">
-  <meta name="theme-color" content="#0c0d10">
-  <link rel="canonical" href="https://avingfix.news/">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="AVING FIX">
-  <meta property="og:title" content="AVING FIX · Future Innovation tech eXpo Discovery Hub">
-  <meta property="og:description" content="Every FIX story AVING has covered — editions, Best of FIX awards, exhibitors and videos.">
-  <meta property="og:url" content="https://avingfix.news/">
-  <meta property="og:image" content="https://avingfix.news/assets/og.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.us.aving.net">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
-  <link rel="stylesheet" href="/assets/style.css?v=2">
-</head>
-<body>
-  <a class="skip" href="#main">Skip to content</a>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AVING FIX · Future Innovation tech eXpo Discovery Hub</title>
+    <meta
+      name="description"
+      content="Every FIX story AVING has covered: Future Innovation tech eXpo (FIX) editions, Best of FIX Global Media Awards, exhibitors in mobility, robotics, AI and tech, plus on-site videos."
+    />
+    <meta name="theme-color" content="#080b0e" />
+    <link rel="canonical" href="https://avingfix.news/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AVING FIX" />
+    <meta
+      property="og:title"
+      content="AVING FIX · Future Innovation tech eXpo Discovery Hub"
+    />
+    <meta
+      property="og:description"
+      content="Every FIX story AVING has covered — editions, Best of FIX awards, exhibitors and videos."
+    />
+    <meta property="og:url" content="https://avingfix.news/" />
+    <meta property="og:image" content="https://avingfix.news/assets/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.us.aving.net" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap"
+    />
+    <link rel="stylesheet" href="/assets/style.css?v=6" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
 
-  <header class="top">
-    <div class="wrap top__in">
-      <a class="logo" href="#/" aria-label="AVING FIX home">
-        <span class="logo__aving">AVING</span><span class="logo__at">@</span><span class="logo__fix">FIX</span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a href="#/edition/2026">FIX 2026</a>
-        <a href="#/awards">Best of FIX</a>
-        <a href="#/videos">Videos</a>
-        <a href="#/all">All stories</a>
-      </nav>
-      <div class="top__tools">
-        <button class="icon-btn" id="openSearch" aria-label="Search FIX stories">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <header class="top">
+      <div class="wrap top__in">
+        <a class="logo" href="#/" aria-label="AVING FIX home">
+          <span class="logo__aving">AVING</span><span class="logo__at">@</span
+          ><span class="logo__fix">FIX</span>
+        </a>
+        <nav class="nav" aria-label="Primary">
+          <a href="#/edition/2026">FIX 2026</a>
+          <a href="#/awards">Best of FIX</a>
+          <a href="#/videos">Videos</a>
+          <a href="#/all">All stories</a>
+        </nav>
+        <div class="top__tools">
+          <button
+            class="icon-btn"
+            id="openSearch"
+            aria-label="Search FIX stories"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M20 20l-4-4"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+          <button
+            class="icon-btn menu-btn"
+            id="openMenu"
+            aria-label="Open menu"
+            aria-expanded="false"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path
+                d="M4 7h16M4 12h16M4 17h16"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="drawer" id="drawer" hidden>
+        <div class="wrap drawer__in">
+          <p class="eyebrow">Editions</p>
+          <div class="drawer__eds" id="drawerEditions"></div>
+          <p class="eyebrow">Sections</p>
+          <a href="#/awards">Best of FIX · Global Media Awards</a>
+          <a href="#/videos">Videos</a>
+          <a href="#/all">All stories</a>
+          <p class="eyebrow">AVING</p>
+          <a href="https://us.aving.net" target="_blank" rel="noopener"
+            >us.aving.net ↗</a
+          >
+          <a
+            href="https://www.youtube.com/@avingusa"
+            target="_blank"
+            rel="noopener"
+            >YouTube @avingusa ↗</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div id="view" aria-live="polite">
+        <p class="loading wrap">Loading stories…</p>
+      </div>
+    </main>
+
+    <dialog class="search" id="search" aria-label="Search FIX stories" hidden>
+      <div class="search__panel">
+        <div class="search__bar">
+          <input
+            id="q"
+            type="search"
+            aria-label="Search by company, product or topic"
+            placeholder="Search by company, product or topic…"
+            autocomplete="off"
+          />
+          <button class="icon-btn" id="closeSearch" aria-label="Close search">
+            ✕
+          </button>
+        </div>
+        <p class="search__meta" id="qMeta"></p>
+        <ol class="search__list" id="qList"></ol>
+      </div>
+    </dialog>
+
+    <dialog class="player" id="player" aria-label="Video player" hidden>
+      <div class="player__box">
+        <button
+          class="icon-btn player__close"
+          id="closePlayer"
+          aria-label="Close video"
+        >
+          ✕
         </button>
-        <button class="icon-btn menu-btn" id="openMenu" aria-label="Open menu" aria-expanded="false">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
+        <div class="player__frame" id="playerFrame"></div>
       </div>
-    </div>
-    <div class="drawer" id="drawer" hidden>
-      <div class="wrap drawer__in">
-        <p class="eyebrow">Editions</p>
-        <div class="drawer__eds" id="drawerEditions"></div>
-        <p class="eyebrow">Sections</p>
-        <a href="#/awards">Best of FIX · Global Media Awards</a>
-        <a href="#/videos">Videos</a>
-        <a href="#/all">All stories</a>
-        <p class="eyebrow">AVING</p>
-        <a href="https://us.aving.net" target="_blank" rel="noopener">us.aving.net ↗</a>
-        <a href="https://www.youtube.com/@avingusa" target="_blank" rel="noopener">YouTube @avingusa ↗</a>
+    </dialog>
+
+    <footer class="foot">
+      <div class="wrap foot__in">
+        <div>
+          <a class="logo logo--sm" href="#/"
+            ><span class="logo__aving">AVING</span
+            ><span class="logo__at">@</span
+            ><span class="logo__fix">FIX</span></a
+          >
+          <p class="foot__note">
+            An independent editorial hub produced by AVING NEWS, collecting
+            AVING's coverage of the Future Innovation tech eXpo (FIX) in Daegu,
+            Korea.
+          </p>
+        </div>
+        <div class="foot__links">
+          <a
+            href="https://fixkorea.or.kr/main.asp"
+            target="_blank"
+            rel="noopener"
+            >Official FIX exhibition ↗</a
+          >
+          <a href="https://us.aving.net" target="_blank" rel="noopener"
+            >us.aving.net ↗</a
+          >
+          <a
+            href="https://www.youtube.com/@avingusa"
+            target="_blank"
+            rel="noopener"
+            >YouTube @avingusa ↗</a
+          >
+        </div>
       </div>
-    </div>
-  </header>
-
-  <main id="main">
-    <div id="view" aria-live="polite">
-      <p class="loading wrap">Loading stories…</p>
-    </div>
-  </main>
-
-  <div class="search" id="search" role="dialog" aria-modal="true" aria-label="Search FIX stories" hidden>
-    <div class="search__panel">
-      <div class="search__bar">
-        <input id="q" type="search" placeholder="Search FIX stories — company, product, topic…" autocomplete="off">
-        <button class="icon-btn" id="closeSearch" aria-label="Close search">✕</button>
+      <div class="wrap foot__legal">
+        <p>© AVING NEWS. All rights reserved.</p>
+        <p>
+          FIX and Future Innovation tech eXpo are names of their respective
+          organizers. This site is not affiliated with, endorsed or sponsored by
+          the FIX organizers or EXCO. Original reporting is available on
+          us.aving.net.
+        </p>
       </div>
-      <p class="search__meta" id="qMeta"></p>
-      <ol class="search__list" id="qList"></ol>
-    </div>
-  </div>
+    </footer>
 
-  <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video player" hidden>
-    <div class="player__box">
-      <button class="icon-btn player__close" id="closePlayer" aria-label="Close video">✕</button>
-      <div class="player__frame" id="playerFrame"></div>
-    </div>
-  </div>
-
-  <footer class="foot">
-    <div class="wrap foot__in">
-      <div>
-        <a class="logo logo--sm" href="#/"><span class="logo__aving">AVING</span><span class="logo__at">@</span><span class="logo__fix">FIX</span></a>
-        <p class="foot__note">An independent editorial hub produced by AVING NEWS, collecting AVING's coverage of the Future Innovation tech eXpo (FIX) in Daegu, Korea.</p>
-      </div>
-      <div class="foot__links">
-        <a href="https://us.aving.net" target="_blank" rel="noopener">us.aving.net ↗</a>
-        <a href="https://www.youtube.com/@avingusa" target="_blank" rel="noopener">YouTube @avingusa ↗</a>
-      </div>
-    </div>
-    <div class="wrap foot__legal">
-      <p>© AVING NEWS. All rights reserved. <span id="updated"></span></p>
-      <p>FIX and Future Innovation tech eXpo are names of their respective organizers. This site is not affiliated with, endorsed or sponsored by the FIX organizers or EXCO. Stories open on us.aving.net.</p>
-    </div>
-  </footer>
-
-  <script src="/assets/app.js?v=2" defer></script>
-</body>
+    <script src="/assets/app.js?v=6" defer></script>
+  </body>
 </html>

@@ -20,32 +20,31 @@
   let DB = null;
 
   /* ---------- helpers ---------- */
-  const tagBadges = s => [
-    s.tags.includes('awards') ? '<span class="badge badge--aw">★ Best of FIX</span>' : '',
-    s.tags.includes('interview') ? '<span class="badge badge--iv">Interview</span>' : '',
+  const storyLabels = s => [
+    s.tags.includes('awards') ? '<span class="story-label">Best of FIX</span>' : '',
+    s.tags.includes('interview') ? '<span class="story-label">Interview</span>' : '',
   ].join(' ');
 
   const kicker = s => `<span class="chip chip--ed">FIX ${s.y}</span>${s.sec ? `<span class="chip">· ${esc(s.sec)}</span>` : ''}`;
   const byline = s => `<p class="meta">${esc(s.by)} · ${fmtDate(s.d)}</p>`;
   const img = s => s.img || (s.yt ? YT_THUMB(s.yt) : '/assets/og.png');
 
-  const card = (s, { lead = false } = {}) => `
+  const card = (s, { lead = false, priority = false } = {}) => `
     <a class="card" href="${ARTICLE(s.id)}">
       <div class="thumb">
-        <img src="${esc(img(s))}" alt="" loading="lazy" decoding="async">
-        ${s.yt ? '<span class="play">▶ Video</span>' : ''}
+        <img src="${esc(img(s))}" alt="" loading="${priority ? 'eager' : 'lazy'}" ${priority ? 'fetchpriority="high"' : ''} decoding="async">
       </div>
-      <div>${kicker(s)} ${tagBadges(s)}</div>
+      <div class="card__copy"><div class="story-meta">${kicker(s)} ${storyLabels(s)}${s.yt ? '<span class="story-label">Video</span>' : ''}</div>
       <h3>${esc(s.t)}</h3>
       ${lead && s.lead ? `<p class="lead">${esc(s.lead)}</p>` : ''}
-      ${byline(s)}
+      ${byline(s)}</div>
     </a>`;
 
   const row = s => `
     <a class="row card" href="${ARTICLE(s.id)}">
       <div class="thumb"><img src="${esc(img(s))}" alt="" loading="lazy" decoding="async"></div>
       <div>
-        <div>${kicker(s)} ${tagBadges(s)}</div>
+        <div>${kicker(s)} ${storyLabels(s)}</div>
         <h3>${esc(s.t)}</h3>
         ${byline(s)}
       </div>
@@ -67,66 +66,51 @@
 
     view.innerHTML = `
       <section class="hero">
-        <div class="hero__grid" id="dots" aria-hidden="true"></div>
-        <div class="hero__shade"></div>
         <div class="wrap hero__in">
-          <p class="eyebrow">AVING FIX archive · ${meta.editions.at(-1).y}–${latestEd.y}</p>
-          <h1>Every FIX story,<b>on file.</b></h1>
-          <p class="hero__lede">Every Future Innovation tech eXpo (FIX) story AVING has covered from EXCO in Daegu — future mobility, robotics, AI, the Best of FIX Global Media Awards and on-site interviews, filed edition by edition.</p>
+          <h1><span>FIX</span><span class="hero__year">${latestEd.y}</span></h1>
+          <p class="hero__name">Future Innovation <span>tech eXpo.</span></p>
+          <p class="hero__lede">Every FIX story, on file. Explore the companies, ideas and people shaping mobility, robotics and AI — through AVING’s reporting from Daegu.</p>
           <div class="btns">
             <a class="btn btn--primary" href="#/edition/${latestEd.y}">Explore FIX ${latestEd.y} →</a>
-            <a class="btn btn--ghost" href="#/awards">Best of FIX →</a>
+            <a class="btn btn--outline" href="#/awards">Best of FIX →</a>
           </div>
-          <div class="stats">
-            <div class="stat"><b>${meta.total.toLocaleString('en-US')}</b><span>Stories</span></div>
-            <div class="stat"><b>${meta.videos}</b><span>Videos</span></div>
-            <div class="stat"><b>${meta.editions.length}</b><span>Editions</span></div>
-            <div class="stat"><b>${awards.length}</b><span>Best of FIX picks</span></div>
-          </div>
-          <p class="hero__hint"><strong>Behind this text</strong>Each square is one story, oldest at the top left. Point at one to read it.</p>
+          <p class="archive-note">${meta.total.toLocaleString('en-US')} stories · ${meta.videos} videos · ${meta.editions.at(-1).y}–${latestEd.y}<span>Reporting by AVING NEWS · EXCO, Daegu</span></p>
         </div>
       </section>
 
-      ${featured ? `
-      <section class="sec"><div class="wrap feature">
-        <div class="feature__media">
-          <img src="${YT_THUMB(featured.yt)}" alt="">
-          <button data-yt="${featured.yt}" aria-label="Play video: ${esc(featured.t)}"><span>▶</span></button>
-        </div>
-        <div>
-          <p class="eyebrow">Featured video · FIX ${featured.y}</p>
-          <h3>${esc(featured.t)}</h3>
-          ${byline(featured)}
-          <div class="btns" style="margin-top:20px">
-            <a class="btn btn--ghost" href="${ARTICLE(featured.id)}">Read the story →</a>
-            <a class="btn btn--ghost" href="https://www.youtube.com/watch?v=${featured.yt}" target="_blank" rel="noopener">Watch on YouTube ↗</a>
-          </div>
-        </div>
-      </div></section>` : ''}
-
-      <section class="sec"><div class="wrap">
-        <div class="sec__head"><div><p class="eyebrow">Latest</p><h2>Fresh from the show floor.</h2></div><a class="more" href="#/all">All stories →</a></div>
-        <div class="latest">
-          ${card(items[0], { lead: true }).replace('class="card"', 'class="card card--lead"')}
-          <div class="rows">${items.slice(1, 6).map(row).join('')}</div>
-        </div>
+      <section class="sec sec--latest" aria-labelledby="latest-title"><div class="wrap">
+        <div class="sec__head"><h2 id="latest-title">Latest stories</h2><a class="more" href="#/all">All stories →</a></div>
+        ${items.length ? `<div class="latest"><div class="latest__lead">${card(items[0], { lead: true, priority: true }).replace('class="card"', 'class="card card--lead"')}</div><div class="latest__list">${items.slice(1, 5).map(row).join('')}</div></div>` : '<p class="empty">No stories yet.</p>'}
       </div></section>
 
       ${awards.length ? `
+      <section class="sec sec--awards" aria-labelledby="awards-title"><div class="wrap">
+        <div class="sec__head"><div><h2 id="awards-title">Best of FIX</h2><p>Global Media Awards · ${awards.length} stories on the companies selected by global media.</p></div><a class="more" href="#/awards">See all picks →</a></div>
+        <div class="section-grid awards-grid">${awards.slice(0, 3).map(s => card(s)).join('')}</div>
+      </div></section>` : ''}
+
+      ${featured ? `
       <section class="sec"><div class="wrap">
-        <div class="band">
-          <div>
-            <p class="eyebrow" style="color:var(--award)">Best of FIX · Global Media Awards</p>
-            <div class="band__num">${awards.length}</div>
-            <p>stories on the companies global media outlets picked as their top innovators at FIX.</p>
-            <a class="more" style="color:var(--award)" href="#/awards">See all picks →</a>
+        <div class="sec__head"><h2>From the show floor</h2><a class="more" href="#/videos">All videos →</a></div>
+        <div class="feature">
+          <div class="feature__media">
+            <img src="${YT_THUMB(featured.yt)}" alt="" loading="lazy">
+            <button data-yt="${featured.yt}" aria-label="Play video: ${esc(featured.t)}"><span><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l11 7-11 7z" fill="currentColor"/></svg></span></button>
           </div>
-          <div class="rows">${awards.slice(0, 4).map(row).join('')}</div>
+          <div>
+            <p class="meta">Video · FIX ${featured.y}</p>
+            <h3>${esc(featured.t)}</h3>
+            ${byline(featured)}
+            <div class="btns">
+              <a class="btn btn--ghost" href="${ARTICLE(featured.id)}">Read the story →</a>
+              <a class="btn btn--ghost" href="https://www.youtube.com/watch?v=${featured.yt}" target="_blank" rel="noopener">Watch on YouTube ↗</a>
+            </div>
+          </div>
         </div>
       </div></section>` : ''}
 
-      <section class="sec"><div class="wrap">
-        <div class="sec__head"><div><p class="eyebrow">Editions</p><h2>Browse by year.</h2></div></div>
+      <section class="sec sec--editions"><div class="wrap">
+        <div class="sec__head"><h2>Explore the editions</h2></div>
         <div class="eds">${meta.editions.map(e => `
           <a class="ed" href="#/edition/${e.y}">
             <b>FIX ${e.y}</b>
@@ -136,78 +120,28 @@
         </div>
       </div></section>
 
-      ${vids.length > 1 ? `
-      <section class="sec" id="video"><div class="wrap">
-        <div class="sec__head"><div><p class="eyebrow">Videos</p><h2>Watch it on site.</h2></div><a class="more" href="#/videos">All videos →</a></div>
-        <div class="grid grid--4">${vids.filter(s => s !== featured).slice(0, 8).map(s => card(s)).join('')}</div>
-      </div></section>` : ''}
-
-      <section class="sec"><div class="wrap">
-        <div class="sec__head"><div><p class="eyebrow">FIX ${latestEd.y}</p><h2>More from this edition.</h2></div><a class="more" href="#/edition/${latestEd.y}">See all ${latestEd.n} →</a></div>
-        <div class="grid">${items.filter(s => s.y === latestEd.y).slice(6, 12).map(s => card(s, { lead: true })).join('')}</div>
+      <section class="sec sec--more" aria-labelledby="more-title"><div class="wrap">
+        <div class="sec__head"><h2 id="more-title">More from FIX ${latestEd.y}</h2><a class="more" href="#/edition/${latestEd.y}">See all ${latestEd.n} →</a></div>
+        <div class="section-grid more-grid">${items.filter(s => s.y === latestEd.y).slice(5, 11).map(s => card(s, { lead: true })).join('')}</div>
       </div></section>`;
-
-    drawDots();
-  }
-
-  /* hero dot grid: one square per story, oldest first */
-  function drawDots() {
-    const box = $('#dots');
-    if (!box) return;
-    const ordered = [...DB.items].reverse();
-    // size the squares so every story fits the hero exactly once
-    const W = box.clientWidth, H = box.clientHeight, N = ordered.length;
-    let cell = Math.floor(Math.sqrt((W * H) / N));
-    let cols = Math.max(1, Math.floor(W / cell));
-    while (cols * Math.floor(H / cell) < N && cell > 12) { cell--; cols = Math.floor(W / cell); }
-    const rows = Math.ceil(H / cell);
-    box.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-    box.style.gridAutoRows = `${cell - 3}px`;
-    let html = '';
-    for (let i = 0; i < cols * rows; i++) {
-      const s = ordered[i];
-      html += s
-        ? `<i data-i="${DB.items.length - 1 - i}" data-y="${s.y}" class="${s.yt ? 'v ' : ''}${s.tags.includes('awards') ? 'aw' : ''}" style="background-image:url('${esc(img(s))}')"></i>`
-        : '<i></i>';
-    }
-    box.innerHTML = html;
-
-    let tip;
-    box.addEventListener('mouseover', e => {
-      const i = e.target.dataset?.i;
-      if (i == null) return;
-      const s = DB.items[+i];
-      tip ??= document.body.appendChild(Object.assign(document.createElement('div'), { className: 'tip' }));
-      tip.innerHTML = `<small>FIX ${s.y} · ${fmtDate(s.d)}</small>${esc(s.t)}`;
-      const r = e.target.getBoundingClientRect();
-      tip.style.left = Math.min(r.left + 16, innerWidth - 340) + 'px';
-      tip.style.top = r.bottom + 8 + 'px';
-      tip.hidden = false;
-    });
-    box.addEventListener('mouseleave', () => tip && (tip.hidden = true));
-    box.addEventListener('click', e => {
-      const i = e.target.dataset?.i;
-      if (i != null) location.hash = ARTICLE(DB.items[+i].id);
-    });
   }
 
   /* ---------- list pages ---------- */
-  function renderList({ title, eyebrow, desc, items, grid = '' }) {
+  function renderList({ title, desc, items }) {
     const secs = [...new Set(items.map(s => s.sec).filter(Boolean))];
     let sec = '', shown = PAGE;
 
     view.innerHTML = `
       <section class="page-head"><div class="wrap">
-        <p class="eyebrow">${eyebrow}</p>
         <h1>${title}</h1>
         <p>${desc}</p>
       </div></section>
       <div class="wrap">
         ${secs.length > 1 ? `<div class="filters" role="toolbar" aria-label="Filter by section">
-          <button class="pill is-on" data-sec="">All · ${items.length}</button>
-          ${secs.map(x => `<button class="pill" data-sec="${esc(x)}">${esc(x)} · ${items.filter(s => s.sec === x).length}</button>`).join('')}
+          <button class="pill is-on" aria-pressed="true" data-sec="">All · ${items.length}</button>
+          ${secs.map(x => `<button class="pill" aria-pressed="false" data-sec="${esc(x)}">${esc(x)} · ${items.filter(s => s.sec === x).length}</button>`).join('')}
         </div>` : ''}
-        <div class="list-wrap"><div class="grid ${grid}" id="list"></div><div class="loadmore" id="more"></div></div>
+        <div class="list-wrap"><div class="editorial-list" id="list"></div><div class="loadmore" id="more"></div></div>
       </div>`;
 
     const draw = () => {
@@ -219,7 +153,7 @@
       const p = e.target.closest('.pill');
       if (p) {
         sec = p.dataset.sec; shown = PAGE;
-        view.querySelectorAll('.pill').forEach(b => b.classList.toggle('is-on', b === p));
+        view.querySelectorAll('.pill').forEach(b => { b.classList.toggle('is-on', b === p); b.setAttribute('aria-pressed', String(b === p)); });
         draw();
       }
       if (e.target.closest('#more button')) { shown += PAGE; draw(); }
@@ -268,7 +202,7 @@
           <h1>${esc(s.t)}</h1>
           <div class="art__meta">
             <span>${esc(s.by)} · ${esc((s.d || '').replace(/-/g, '.'))}</span>
-            ${tagBadges(s)}
+            ${storyLabels(s)}
             <a class="art__orig" href="${ORIGINAL(s.id)}" target="_blank" rel="noopener">Original on AVING USA ↗</a>
           </div>
         </header>
@@ -280,8 +214,8 @@
       </article>
       ${related.length ? `
       <section class="sec"><div class="wrap">
-        <div class="sec__head"><div><p class="eyebrow">More from FIX ${s.y}</p><h2>Keep reading.</h2></div><a class="more" href="#/edition/${s.y}">All FIX ${s.y} stories →</a></div>
-        <div class="grid grid--4">${related.map(x => card(x)).join('')}</div>
+        <div class="sec__head"><h2>More from FIX ${s.y}</h2><a class="more" href="#/edition/${s.y}">All FIX ${s.y} stories →</a></div>
+        <div class="news-rows">${related.map(row).join('')}</div>
       </div></section>` : ''}`;
 
     const body = await loadBody(id);
@@ -304,7 +238,9 @@
     setNav(h);
     const { items, meta } = DB;
 
+    view.onclick = null;
     closeSearch();
+    closePlayer();
     if (a !== 'article') document.title = SITE_TITLE;
 
     if (a === 'article' && b) {
@@ -313,28 +249,28 @@
       const y = +b;
       const e = meta.editions.find(x => x.y === y);
       renderList({
-        eyebrow: 'Edition', title: `FIX ${y}`,
+        title: `FIX ${y}`,
         desc: e ? `${e.n} stories${e.v ? ` and ${e.v} videos` : ''} from Future Innovation tech eXpo ${y} at EXCO, Daegu.` : 'No stories for this edition yet.',
         items: items.filter(s => s.y === y),
       });
     } else if (a === 'awards') {
       renderList({
-        eyebrow: 'Best of FIX', title: 'Global Media Awards',
+        title: 'Global Media Awards',
         desc: 'Global media outlets name their top innovative companies at FIX. Every pick, outlet by outlet.',
         items: items.filter(s => s.tags.includes('awards')),
       });
     } else if (a === 'videos') {
       renderList({
-        eyebrow: 'Videos', title: 'FIX on video',
+        title: 'FIX on video',
         desc: 'On-site interviews and product walk-throughs from the FIX show floor.',
-        items: items.filter(s => s.yt), grid: 'grid--4',
+        items: items.filter(s => s.yt),
       });
     } else if (a === 'all') {
-      renderList({ eyebrow: 'Archive', title: 'All FIX stories', desc: `${items.length} stories across ${meta.editions.length} editions, newest first.`, items });
+      renderList({ title: 'All FIX stories', desc: `${items.length} stories across ${meta.editions.length} editions, newest first.`, items });
     } else {
       renderHome();
     }
-    if (a) scrollTo({ top: 0 });
+    scrollTo({ top: 0, behavior: 'instant' });
   }
 
   /* ---------- search ---------- */
@@ -361,35 +297,44 @@
         <span><b>${esc(s.t).replace(re, '<mark>$1</mark>')}</b><span class="meta">FIX ${s.y} · ${fmtDate(s.d)}</span></span>
       </a></li>`).join('');
   }
-  const openSearch = () => { $('#search').hidden = false; $('#q').focus(); search($('#q').value); };
-  const closeSearch = () => { $('#search').hidden = true; };
+  const openSearch = () => {
+    if (!DB) return;
+    closePlayer();
+    $('#search').hidden = false;
+    $('#search').showModal();
+    $('#q').focus();
+    search($('#q').value);
+  };
+  const closeSearch = () => { $('#search').close(); $('#search').hidden = true; };
 
   /* ---------- video player ---------- */
   const openPlayer = id => {
     $('#playerFrame').innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="YouTube video"></iframe>`;
     $('#player').hidden = false;
+    $('#player').showModal();
   };
-  const closePlayer = () => { $('#playerFrame').innerHTML = ''; $('#player').hidden = true; };
+  const closePlayer = () => { $('#player').close(); $('#playerFrame').innerHTML = ''; $('#player').hidden = true; };
 
   /* ---------- wiring ---------- */
   $('#openSearch').addEventListener('click', openSearch);
   $('#closeSearch').addEventListener('click', closeSearch);
   $('#search').addEventListener('click', e => { if (e.target.id === 'search') closeSearch(); });
+  $('#search').addEventListener('cancel', e => { e.preventDefault(); closeSearch(); });
   $('#q').addEventListener('input', e => search(e.target.value));
   $('#qList').addEventListener('click', e => { if (e.target.closest('a')) closeSearch(); });
   $('#closePlayer').addEventListener('click', closePlayer);
   $('#player').addEventListener('click', e => { if (e.target.id === 'player') closePlayer(); });
+  $('#player').addEventListener('cancel', e => { e.preventDefault(); closePlayer(); });
   $('#openMenu').addEventListener('click', e => {
     const d = $('#drawer'); d.hidden = !d.hidden; e.currentTarget.setAttribute('aria-expanded', String(!d.hidden));
   });
-  $('#drawer').addEventListener('click', e => { if (e.target.closest('a')) $('#drawer').hidden = true; });
+  $('#drawer').addEventListener('click', e => { if (e.target.closest('a')) { $('#drawer').hidden = true; $('#openMenu').setAttribute('aria-expanded', 'false'); } });
   document.addEventListener('click', e => { const b = e.target.closest('[data-yt]'); if (b) openPlayer(b.dataset.yt); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeSearch(); closePlayer(); }
     if ((e.key === '/' || (e.key === 'k' && (e.metaKey || e.ctrlKey))) && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); openSearch(); }
   });
   addEventListener('hashchange', route);
-  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (!location.hash || location.hash === '#/') drawDots(); }, 200); });
 
   /* ---------- boot ---------- */
   fetch('/data/stories.json', { cache: 'no-cache' })

@@ -338,12 +338,18 @@
 
   /* ---------- boot ---------- */
   fetch('/data/stories.json', { cache: 'no-cache' })
-    .then(r => r.json())
+    .then(r => { if (!r.ok) throw new Error(`stories.json ${r.status}`); return r.json(); })
     .then(data => {
       DB = data;
-      $('#updated').textContent = `Updated ${data.meta.updated}`;
-      $('#drawerEditions').innerHTML = data.meta.editions.map(e => `<a class="pill" href="#/edition/${e.y}">FIX ${e.y}</a>`).join('');
+      // footer/drawer 요소가 디자인 변경으로 빠져도 사이트가 멈추지 않도록 존재할 때만 채움
+      const upd = $('#updated');
+      if (upd) upd.textContent = `Updated ${data.meta.updated}`;
+      const eds = $('#drawerEditions');
+      if (eds) eds.innerHTML = data.meta.editions.map(e => `<a class="pill" href="#/edition/${e.y}">FIX ${e.y}</a>`).join('');
       route();
     })
-    .catch(() => { view.innerHTML = '<p class="loading wrap">Could not load stories. Please refresh.</p>'; });
+    .catch(err => {
+      console.error('[AVING FIX] boot failed:', err);
+      view.innerHTML = '<p class="loading wrap">Could not load stories. Please refresh.</p>';
+    });
 })();
